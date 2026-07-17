@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* ---------- Highlight current page in nav ---------- */
-  var current = window.location.pathname.split("/").pop() || "index.html";
+  var current = window.location.pathname.split("/").pop() || "#";
   document.querySelectorAll(".main-nav a").forEach(function (link) {
     if (link.getAttribute("href") === current) link.classList.add("active");
   });
