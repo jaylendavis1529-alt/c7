@@ -1,4 +1,4 @@
-/* Pure Taste Table — site behaviour (dark theme edition) */
+s/* Pure Taste Table — site behaviour (dark theme edition) */
 
 document.addEventListener("DOMContentLoaded", function () {
   /* ---------- Mobile navigation ---------- */
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* ---------- Highlight current page in nav ---------- */
-  var current = window.location.pathname.split("/").pop() || "#";
+  var current = window.location.pathname.split("/").pop() || "index.php";
   document.querySelectorAll(".main-nav a").forEach(function (link) {
     if (link.getAttribute("href") === current) link.classList.add("active");
   });
